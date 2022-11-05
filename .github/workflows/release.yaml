@@ -1,0 +1,84 @@
+name: Release and deploy
+
+on:
+  push:
+    branches:
+    - "v[0-9]+.[0-9]+"
+
+jobs:
+  release-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Echo the branch name
+      run: echo "current branch - ${{ github.ref_name }}"
+    - name: Checkout the branch
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.ref_name }}
+    - name: Skip Workflow
+      uses: saulmaldonado/skip-workflow@v1.1.0
+      with:
+        phrase:  '#NORUN'
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Deploy to Railway
+      uses: devtomio/action-railway@v1.1.4
+      with:
+        railway_token: ${{ secrets.RAILWAY_TOKEN }}
+    - name: release
+      uses: ncipollo/release-action@v1
+    - name: Send custom JSON data to Slack workflow
+      id: slack
+      uses: slackapi/slack-github-action@v1.23.0
+      with:
+        # For posting a rich message using Block Kit
+        payload: |
+          {
+            "text": "GitHub Action build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}",
+            "blocks": [
+              {
+                "type": "header",
+                "text": {
+                  "type": "plain_text",
+                  "text": "DipSA55 CI/CD Assignment Submission"
+                }
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Name:*\n${{ secrets.NAME}}"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Metriculation:*\n${{ secrets.METRICULATION}}"
+                  }
+                ]
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Email:*\n${{ secrets.EMAIL}}"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Repository:*\n<https://github.com/YingCrystal/go_fortune.git>"
+                  }
+                ]
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "<https://broken-donkey-production.up.railway.app|Open Application>"
+                  }
+                ]
+              }
+            ]
+          }
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
