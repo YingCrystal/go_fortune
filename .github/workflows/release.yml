@@ -8,6 +8,8 @@ on:
 jobs:
   release-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - name: Echo the branch name
       run: echo "current branch - ${{ github.ref_name }}"
