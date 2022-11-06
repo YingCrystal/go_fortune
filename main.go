@@ -153,5 +153,4 @@ func main() {
 	if err := r.Run(fmt.Sprintf("0.0.0.0:%d", port)); nil != err {
 		log.Panicf("Cannot start server. %v\n", err)
 	}
-
 }
